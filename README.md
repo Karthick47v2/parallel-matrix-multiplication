@@ -1,1 +1,9 @@
 # parallel-matrix-multiplication
+
+4.6170 - SEQUENTIAL
+
+0.5677 - PARALLEL - OUTERLOOP - I,J interchange
+
+0.7024 - PARALLEL - OUTERLOOP - SIMD
+0.8601 - PARALLEL - 2nd OUTERLOOP - SIMD
+3.6867 - PARALLEL - INNERLOOP - SIMD
