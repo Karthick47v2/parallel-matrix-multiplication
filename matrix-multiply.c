@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <omp.h>
 #include <time.h>
@@ -35,25 +36,24 @@ void matMultiplySequential(unsigned short int matA[NO_OF_ROWS][NO_OF_COLS], unsi
 
 void matMultiplyOmp(unsigned short int matA[NO_OF_ROWS][NO_OF_COLS], unsigned short int matB[NO_OF_ROWS][NO_OF_COLS], unsigned short int mat[NO_OF_ROWS][NO_OF_COLS])
 {
-#pragma omp parallel
+#pragma omp parallel shared(matA, matB, mat)
     {
         int numThreads = omp_get_num_threads();
         int threadNo = omp_get_thread_num();
 
-        unsigned short int temp;
+        unsigned short int temp[NO_OF_COLS];
+
         for (int i = threadNo; i < NO_OF_ROWS; i += numThreads)
         {
+            memset(temp, 0, NO_OF_COLS * sizeof(short int));
             for (int j = 0; j < NO_OF_COLS; j++)
             {
-                temp = 0;
                 for (int k = 0; k < NO_OF_ROWS; k++)
                 {
-                    temp += matA[i][k] * matB[k][j];
+                    temp[k] += matA[i][j] * matB[j][k];
                 }
-
-#pragma omp atomic
-                mat[j][i] += temp;
             }
+            memcpy(mat[i], temp, NO_OF_COLS * sizeof(short int));
         }
     }
 }
@@ -82,7 +82,7 @@ int main()
 
     double startTime = omp_get_wtime();
 
-    for (int t = 0; t < 2; t++)
+    for (int t = 0; t < 5; t++)
     {
         // initMat(matA, matB, resultMatA);
         initMat(matA, matB, resultMatB);
@@ -91,7 +91,7 @@ int main()
         matMultiplyOmp(matA, matB, resultMatB);
     }
 
-    printf("Time elapsed: %f\n", (omp_get_wtime() - startTime) / 2);
+    printf("Time elapsed: %f\n", (omp_get_wtime() - startTime) / 5);
 
     // printMat(matA);
     // printMat(matB);
