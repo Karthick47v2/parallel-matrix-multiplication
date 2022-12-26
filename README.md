@@ -18,7 +18,9 @@ The parallel execution was done using 12 Threads. We can see that parallel execu
 
 The above figure shows execution of 3rd method for 1000x1000 matrix multiplication with different number of threads.
 
-See this medium [post](https://medium.com/@karthicktsharma/parallel-matrix-multiplication-7e2e0efa64f4) for more infomation.
+**See this medium [post](https://medium.com/@karthicktsharma/parallel-matrix-multiplication-7e2e0efa64f4) for more infomation [For OpenMP].**
+
+**[Parallelizing using CUDA will be updated soon]**
 
 ## Execution Environment
 
