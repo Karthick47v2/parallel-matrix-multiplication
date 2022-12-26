@@ -4,71 +4,70 @@
 #include <omp.h>
 #include <time.h>
 
-#define NO_OF_ROWS 1000
-#define NO_OF_COLS 1000
+short int MAT_DIMS = 1000;
+short int NO_THREADS = 12;
 
-void initMat(unsigned short int matA[NO_OF_ROWS][NO_OF_COLS], unsigned short int matB[NO_OF_ROWS][NO_OF_COLS], unsigned short int mat[NO_OF_ROWS][NO_OF_COLS])
+void initMat(short int *matA, short int *matB)
 {
-    for (int i = 0; i < NO_OF_ROWS; i++)
+    for (short int i = 0; i < MAT_DIMS; i++)
     {
-        for (int j = 0; j < NO_OF_COLS; j++)
+        for (short int j = 0; j < MAT_DIMS; j++)
         {
-            matA[i][j] = rand() % 5;
-            matB[i][j] = rand() % 5;
-            mat[i][j] = 0;
+            matA[i * MAT_DIMS + j] = rand() % 5;
+            matB[i * MAT_DIMS + j] = rand() % 5;
         }
     }
 }
 
-void matMultiplySequential(unsigned short int matA[NO_OF_ROWS][NO_OF_COLS], unsigned short int matB[NO_OF_ROWS][NO_OF_COLS], unsigned short int mat[NO_OF_ROWS][NO_OF_COLS])
+void matMultiplySequential(short int *matA, short int *matB, unsigned short int *mat)
 {
-    for (int i = 0; i < NO_OF_ROWS; i++)
+    for (short int i = 0; i < MAT_DIMS; i++)
     {
-        for (int j = 0; j < NO_OF_COLS; j++)
+        for (short int j = 0; j < MAT_DIMS; j++)
         {
-            for (int k = 0; k < NO_OF_ROWS; k++)
+            for (short int k = 0; k < MAT_DIMS; k++)
             {
-                mat[i][j] += matA[i][k] * matB[k][j];
+                mat[i * MAT_DIMS + j] += matA[i * MAT_DIMS + k] * matB[k * MAT_DIMS + j];
             }
         }
     }
 }
 
-void matMultiplyOmp(unsigned short int matA[NO_OF_ROWS][NO_OF_COLS], unsigned short int matB[NO_OF_ROWS][NO_OF_COLS], unsigned short int mat[NO_OF_ROWS][NO_OF_COLS])
+void matMultiplyOmp(short int *matA, short int *matB, unsigned short int *mat)
 {
-#pragma omp parallel num_threads(12) shared(matA, matB, mat)
+#pragma omp parallel num_threads(NO_THREADS) shared(matA, matB, mat)
     {
-        int numThreads = omp_get_num_threads();
-        int threadNo = omp_get_thread_num();
+        short int numThreads = omp_get_num_threads();
+        short int threadNo = omp_get_thread_num();
 
-        unsigned short int temp[NO_OF_COLS];
-        // unsigned short int temp = 0;
+        unsigned short int temp[MAT_DIMS];
+        //unsigned short int temp = 0;
 
-        for (int i = threadNo; i < NO_OF_ROWS; i += numThreads)
+        for (short int i = threadNo; i < MAT_DIMS; i += numThreads)
         {
-            memset(temp, 0, NO_OF_COLS * sizeof(short int));
-            for (int j = 0; j < NO_OF_COLS; j++)
+            memset(temp, 0, MAT_DIMS * sizeof(short int));
+            for (short int j = 0; j < MAT_DIMS; j++)
             {
-                // temp = 0;
-                for (int k = 0; k < NO_OF_ROWS; k++)
+               // temp = 0;
+                for (short int k = 0; k < MAT_DIMS; k++)
                 {
-                    temp[k] += matA[i][j] * matB[j][k];
-                    // temp += matA[i][k] * matB[k][j];
+                    temp[k] += matA[i * MAT_DIMS + j] * matB[j * MAT_DIMS + k];
+                    //temp += matA[i * MAT_DIMS + k] * matB[k * MAT_DIMS + j];
                 }
-                // mat[i][j] = temp;
+                //mat[i * MAT_DIMS + j] = temp;
             }
-            memcpy(mat[i], temp, NO_OF_COLS * sizeof(short int));
+            memcpy(&mat[i * MAT_DIMS], temp, MAT_DIMS * sizeof(short int));
         }
     }
 }
 
-void printMat(unsigned short int mat[NO_OF_ROWS][NO_OF_COLS])
+void printMat(unsigned short int *mat)
 {
-    for (int i = 0; i < NO_OF_ROWS; i++)
+    for (short int i = 0; i < MAT_DIMS; i++)
     {
-        for (int j = 0; j < NO_OF_COLS; j++)
+        for (short int j = 0; j < MAT_DIMS; j++)
         {
-            printf("%d ", mat[i][j]);
+            printf("%d ", mat[i * MAT_DIMS + j]);
         }
         printf("\n");
     }
@@ -79,20 +78,31 @@ int main()
 {
     srand(time(NULL));
 
-    unsigned short int matA[NO_OF_ROWS][NO_OF_COLS];
-    unsigned short int matB[NO_OF_ROWS][NO_OF_COLS];
-    unsigned short int resultMat[NO_OF_ROWS][NO_OF_COLS];
+    short int *matA;
+    short int *matB;
+    unsigned short int *resultMat;
 
-    double startTime = omp_get_wtime();
+    double startTime;
 
-    for (int t = 0; t < 5; t++)
+    // for (; NO_THREADS > 0; NO_THREADS -= 1)
+    for (; MAT_DIMS > 0; MAT_DIMS -= 100)
     {
-        initMat(matA, matB, resultMat);
-        // matMultiplySequential(matA, matB, resultMat);
-        matMultiplyOmp(matA, matB, resultMat);
-    }
+        matA = (short int *)malloc(MAT_DIMS * MAT_DIMS * sizeof(short int));
+        matB = (short int *)malloc(MAT_DIMS * MAT_DIMS * sizeof(short int));
 
-    printf("Time elapsed: %f\n", (omp_get_wtime() - startTime) / 5);
+        initMat(matA, matB);
+
+        startTime = omp_get_wtime();
+
+        for (short int t = 0; t < 5; t++)
+        {
+            resultMat = (short int *)calloc(MAT_DIMS * MAT_DIMS, sizeof(short int));
+            //matMultiplySequential(matA, matB, resultMat);
+             matMultiplyOmp(matA, matB, resultMat);
+        }
+
+        printf("No. of Threads %d, Dims %d, Time elapsed: %f\n", NO_THREADS, MAT_DIMS, (omp_get_wtime() - startTime) / 5);
+    }
 
     // printMat(matA);
     // printMat(matB);
