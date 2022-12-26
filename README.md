@@ -1,5 +1,3 @@
--- memory locality
-
 # parallel-matrix-multiplication
 
 Analyzing the performance of matrix multiplication in parallel environment. Naive multiplication of 2 square matrices with 10, 100, 1000 number of rows was considered for this study. This operation was optimized to perform on CPU and GPU using OpenMP and CUDA.
@@ -19,6 +17,8 @@ The parallel execution was done using 12 Threads. We can see that parallel execu
 </p>
 
 The above figure shows execution of 3rd method for 1000x1000 matrix multiplication with different number of threads.
+
+See this medium [post](https://medium.com/@karthicktsharma/parallel-matrix-multiplication-7e2e0efa64f4) for more infomation.
 
 ## Execution Environment
 
