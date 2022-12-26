@@ -36,22 +36,26 @@ void matMultiplySequential(unsigned short int matA[NO_OF_ROWS][NO_OF_COLS], unsi
 
 void matMultiplyOmp(unsigned short int matA[NO_OF_ROWS][NO_OF_COLS], unsigned short int matB[NO_OF_ROWS][NO_OF_COLS], unsigned short int mat[NO_OF_ROWS][NO_OF_COLS])
 {
-#pragma omp parallel shared(matA, matB, mat)
+#pragma omp parallel num_threads(12) shared(matA, matB, mat)
     {
         int numThreads = omp_get_num_threads();
         int threadNo = omp_get_thread_num();
 
         unsigned short int temp[NO_OF_COLS];
+        // unsigned short int temp = 0;
 
         for (int i = threadNo; i < NO_OF_ROWS; i += numThreads)
         {
             memset(temp, 0, NO_OF_COLS * sizeof(short int));
             for (int j = 0; j < NO_OF_COLS; j++)
             {
+                // temp = 0;
                 for (int k = 0; k < NO_OF_ROWS; k++)
                 {
                     temp[k] += matA[i][j] * matB[j][k];
+                    // temp += matA[i][k] * matB[k][j];
                 }
+                // mat[i][j] = temp;
             }
             memcpy(mat[i], temp, NO_OF_COLS * sizeof(short int));
         }
@@ -77,26 +81,22 @@ int main()
 
     unsigned short int matA[NO_OF_ROWS][NO_OF_COLS];
     unsigned short int matB[NO_OF_ROWS][NO_OF_COLS];
-    // unsigned short int resultMatA[NO_OF_ROWS][NO_OF_COLS];
-    unsigned short int resultMatB[NO_OF_ROWS][NO_OF_COLS];
+    unsigned short int resultMat[NO_OF_ROWS][NO_OF_COLS];
 
     double startTime = omp_get_wtime();
 
     for (int t = 0; t < 5; t++)
     {
-        // initMat(matA, matB, resultMatA);
-        initMat(matA, matB, resultMatB);
-
-        // matMultiplySequential(matA, matB, resultMatA);
-        matMultiplyOmp(matA, matB, resultMatB);
+        initMat(matA, matB, resultMat);
+        // matMultiplySequential(matA, matB, resultMat);
+        matMultiplyOmp(matA, matB, resultMat);
     }
 
     printf("Time elapsed: %f\n", (omp_get_wtime() - startTime) / 5);
 
     // printMat(matA);
     // printMat(matB);
-    // printMat(resultMatA);
-    // printMat(resultMatB);
+    // printMat(resultMat);
 
     return 0;
 }
